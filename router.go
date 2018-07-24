@@ -76,7 +76,7 @@ package fasthttprouter
 import (
 	"strings"
 
-	"github.com/valyala/fasthttp"
+	"github.com/kirillbeldyaga/fasthttp"
 	"time"
 	"github.com/fatih/color"
 	"fmt"
@@ -380,13 +380,12 @@ func (r *Router) Handler(ctx *fasthttp.RequestCtx) {
 	if r.NotFound != nil {
 		r.NotFound(ctx)
 	} else {
-		ctx.Error(fasthttp.StatusMessage(fasthttp.StatusNotFound),
-			fasthttp.StatusNotFound)
+		ctx.Error(fasthttp.StatusMessage(fasthttp.StatusNotFound), fasthttp.StatusNotFound)
 	}
 	log(start, ctx)
 }
 
 func log(start time.Time, ctx *fasthttp.RequestCtx) {
 	d := color.New(color.FgCyan, color.Bold)
-	d.Println(fmt.Sprintf("%s\t%s\t%s\t%s\t%s", time.Now().Format("2006-01-02 15:04:05"), string(ctx.Method()), string(ctx.RequestURI()), string(ctx.Path())[1:], time.Since(start)))
+	d.Println(fmt.Sprintf("%s\t%s\t%s\t%s\t%s", time.Now().Format("2006-01-02 15:04:05.000000"), string(ctx.Method()), string(ctx.RequestURI()), string(ctx.Path())[1:], time.Since(start)))
 }

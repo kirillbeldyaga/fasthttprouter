@@ -5,7 +5,7 @@
 package fasthttprouter
 
 import (
-	"github.com/valyala/fasthttp"
+	"github.com/kirillbeldyaga/fasthttp"
 	"strings"
 	"unicode"
 	"unicode/utf8"
