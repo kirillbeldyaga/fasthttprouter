@@ -77,6 +77,9 @@ import (
 	"strings"
 
 	"github.com/valyala/fasthttp"
+	"time"
+	"github.com/fatih/color"
+	"fmt"
 )
 
 var (
@@ -289,6 +292,7 @@ func (r *Router) allowed(path, reqMethod string) (allow string) {
 
 // Handler makes the router implement the fasthttp.ListenAndServe interface.
 func (r *Router) Handler(ctx *fasthttp.RequestCtx) {
+	start := time.Now()
 	if r.PanicHandler != nil {
 		defer r.recv(ctx)
 	}
@@ -298,6 +302,7 @@ func (r *Router) Handler(ctx *fasthttp.RequestCtx) {
 	if root := r.trees[method]; root != nil {
 		if f, tsr := root.getValue(path, ctx); f != nil {
 			f(ctx)
+			log(start, ctx)
 			return
 		} else if method != "CONNECT" && path != "/" {
 			code := 301 // Permanent redirect, request with GET method
@@ -314,12 +319,13 @@ func (r *Router) Handler(ctx *fasthttp.RequestCtx) {
 				} else {
 					uri = path + "/"
 				}
-				
+
 				if len(ctx.URI().QueryString()) > 0 {
 					uri += "?" + string(ctx.QueryArgs().QueryString())
 				}
-				
+
 				ctx.Redirect(uri, code)
+				log(start, ctx)
 				return
 			}
 
@@ -338,6 +344,7 @@ func (r *Router) Handler(ctx *fasthttp.RequestCtx) {
 					}
 					uri := string(fixedPath)
 					ctx.Redirect(uri, code)
+					log(start, ctx)
 					return
 				}
 			}
@@ -349,6 +356,7 @@ func (r *Router) Handler(ctx *fasthttp.RequestCtx) {
 		if r.HandleOPTIONS {
 			if allow := r.allowed(path, method); len(allow) > 0 {
 				ctx.Response.Header.Set("Allow", allow)
+				log(start, ctx)
 				return
 			}
 		}
@@ -364,6 +372,7 @@ func (r *Router) Handler(ctx *fasthttp.RequestCtx) {
 					ctx.SetContentTypeBytes(defaultContentType)
 					ctx.SetBodyString(fasthttp.StatusMessage(fasthttp.StatusMethodNotAllowed))
 				}
+				log(start, ctx)
 				return
 			}
 		}
@@ -376,4 +385,10 @@ func (r *Router) Handler(ctx *fasthttp.RequestCtx) {
 		ctx.Error(fasthttp.StatusMessage(fasthttp.StatusNotFound),
 			fasthttp.StatusNotFound)
 	}
+	log(start, ctx)
+}
+
+func log(start time.Time, ctx *fasthttp.RequestCtx) {
+	d := color.New(color.FgCyan, color.Bold)
+	d.Println(fmt.Sprintf("%s\t%s\t%s\t%s\t%s", time.Now().Format("2006-01-02 15:04:05"), string(ctx.Method()), string(ctx.RequestURI()), string(ctx.Path())[1:], time.Since(start)))
 }
